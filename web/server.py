@@ -63,7 +63,7 @@ def create_user():
 
 @app.route('/authenticate', methods = ["POST"])
 def authenticate():
-    time.sleep(8)
+    time.sleep(3)
     message = json.loads(request.data)
     username = message['username']
     password = message['password']
@@ -76,6 +76,7 @@ def authenticate():
             ).one()
         message = {'message': 'Authorized'}
         return Response(message, status=200, mimetype='application/json')
+
     except Exception:
         message = {'message': 'Unauthorized'}
         return Response(message, status=401, mimetype='application/json')
