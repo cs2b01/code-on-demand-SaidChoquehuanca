@@ -81,6 +81,53 @@ def authenticate():
         message = {'message': 'Unauthorized'}
         return Response(message, status=401, mimetype='application/json')
 
+#Chatmensajes
+
+@app.route('/chat', methods = ['PUT'])
+def update_message():
+    session = db.getSession(engine)
+    id = request.form['key']
+    message = session.query(entities.Message).filter(entities.Message.id == id).first()
+    c =  json.loads(request.form['values'])
+    for key in c.keys():
+        setattr(message, key, c[key])
+    session.add(message)
+    session.commit()
+    return 'Updated Message'
+
+@app.route('/chat', methods = ['GET'])
+def get_messages():
+    session = db.getSession(engine)
+    dbResponse = session.query(entities.Message)
+    data = []
+    for message in dbResponse:
+        data.append(message)
+    return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+@app.route('/chat', methods = ['DELETE'])
+def delete_message():
+    id = request.form['key']
+    session = db.getSession(engine)
+    messages = session.query(entities.Message).filter(entities.Message.id == id)
+    for message in messages:
+        session.delete(message)
+    session.commit()
+    return "Deleted Message"
+
+@app.route('/chat', methods = ['POST'])
+def create_message():
+    c =  json.loads(request.form['values'])
+    session = db.getSession(engine)
+    message = entities.Message(
+        content=c['content'],
+        user_from_id= c['user_from_id'],
+        user_to_id=c['user_to_id']
+    )
+    session.add(message)
+    session.commit()
+    return 'Created Message'
+
+
 
 if __name__ == '__main__':
     app.secret_key = ".."
