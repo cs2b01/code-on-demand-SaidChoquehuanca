@@ -1,3 +1,4 @@
+
 from flask import Flask,render_template, request, session, Response, redirect
 from database import connector
 from model import entities
@@ -74,60 +75,63 @@ def authenticate():
             ).filter(entities.User.username == username
             ).filter(entities.User.password == password
             ).one()
+        session['logged_user'] = user.id
         message = {'message': 'Authorized'}
         return Response(message, status=200, mimetype='application/json')
-
     except Exception:
         message = {'message': 'Unauthorized'}
         return Response(message, status=401, mimetype='application/json')
 
-#Chatmensajes
+@app.route('/current', methods = ["GET"])
+def current_user():
+    db_session = db.getSession(engine)
+    user = db_session.query(entities.User).filter(
+        entities.User.id == session['logged_user']
+        ).first()
+    return Response(json.dumps(
+            user,
+            cls=connector.AlchemyEncoder),
+            mimetype='application/json'
+        )
 
-@app.route('/chat', methods = ['PUT'])
-def update_message():
-    session = db.getSession(engine)
-    id = request.form['key']
-    message = session.query(entities.Message).filter(entities.Message.id == id).first()
-    c =  json.loads(request.form['values'])
-    for key in c.keys():
-        setattr(message, key, c[key])
-    session.add(message)
-    session.commit()
-    return 'Updated Message'
+@app.route('/logout', methods = ["GET"])
+def logout():
+    session.clear()
+    return render_template('index.html')
 
-@app.route('/chat', methods = ['GET'])
-def get_messages():
-    session = db.getSession(engine)
-    dbResponse = session.query(entities.Message)
+
+@app.route('/messages/<user_from_id>/<user_to_id>', methods = ['GET'])
+def get_messages(user_from_id, user_to_id ):
+    db_session = db.getSession(engine)
+    messages = db_session.query(entities.Message).filter(
+        entities.Message.user_from_id == user_from_id).filter(
+        entities.Message.user_to_id == user_to_id
+    )
     data = []
-    for message in dbResponse:
+    for message in messages:
         data.append(message)
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype='application/json')
 
-@app.route('/chat', methods = ['DELETE'])
-def delete_message():
-    id = request.form['key']
-    session = db.getSession(engine)
-    messages = session.query(entities.Message).filter(entities.Message.id == id)
-    for message in messages:
-        session.delete(message)
-    session.commit()
-    return "Deleted Message"
 
-@app.route('/chat', methods = ['POST'])
+@app.route('/gabriel/messages', methods = ["POST"])
 def create_message():
-    c =  json.loads(request.form['values'])
-    session = db.getSession(engine)
+    data = json.loads(request.data)
+    user_to_id = data['user_to_id']
+    user_from_id = data['user_from_id']
+    content = data['content']
+
     message = entities.Message(
-        content=c['content'],
-        user_from_id= c['user_from_id'],
-        user_to_id=c['user_to_id']
-    )
-    session.add(message)
-    session.commit()
-    return 'Created Message'
+    user_to_id = user_to_id,
+    user_from_id = user_from_id,
+    content = content)
 
+    #2. Save in database
+    db_session = db.getSession(engine)
+    db_session.add(message)
+    db_session.commit()
 
+    response = {'message': 'created'}
+    return Response(json.dumps(response, cls=connector.AlchemyEncoder), status=200, mimetype='application/json')
 
 if __name__ == '__main__':
     app.secret_key = ".."

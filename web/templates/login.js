@@ -19,7 +19,11 @@ function getData(){
                 $('#action').append('<img width="35" height="35" src="/static/images/error.png"/>');
                 }else{
                 $('#action').append('<img width="35" height="35" src="/static/images/check.png"/>');
+                var url = 'http://' + document.domain + ':' + location.port + '/static/chat.html';
+                 $(location).attr('href',url);
                 }
+
+
 
                 //$('#action').html(response['statusText']);
             },
@@ -32,6 +36,8 @@ function getData(){
                 $('#action').append('<img width="35" height="35" src="/static/images/error.png"/"/>');
                 }else{
                 $('#action').append('<img width="35" height="35" src="/static/images/check.png"/"/>');
+                var url = 'http://' + document.domain + ':' + location.port + '/static/chat.html';
+                 $(location).attr('href',url);
                 }
             //success: function(response){
                 //alert(JSON.stringify(response));

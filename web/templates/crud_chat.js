@@ -1,70 +1,89 @@
-$(function(){
-    var url = "http://127.0.0.1:8080/users";
-    var url = "http://127.0.0.1:8080/chat";
-    $("#grid").dxDataGrid({
-        dataSource: DevExpress.data.AspNet.createStore({
-            key: "id",
-            loadUrl: url ,
-            insertUrl: url ,
-            updateUrl: url ,
-            deleteUrl: url ,
-            onBeforeSend: function(method, ajaxOptions) {
-                ajaxOptions.xhrFields = { withCredentials: true };
+var currentUserId = 0;
+var currentClickedId = 0;
+function whoami(){
+        $.ajax({
+            url:'/current',
+            type:'GET',
+            contentType: 'application/json',
+            dataType:'json',
+            success: function(response){
+                //alert(JSON.stringify(response));
+                $('#cu_username').html(response['username'])
+                var name = response['name']+" "+response['fullname'];
+                currentUserId = response['id']
+                $('#cu_name').html(name);
+                allusers();
+            },
+            error: function(response){
+                alert(JSON.stringify(response));
             }
-        }),
-        editing: {
-            allowUpdating: true,
-            allowDeleting: true,
-            allowAdding: true
-        },
-        remoteOperations: {
-            sorting: true,
-            paging: true
-        },
-        paging: {
-            pageSize: 12
-        },
-        pager: {
-            showPageSizeSelector: true,
-            allowedPageSizes: [8, 12, 20]
-        },
-        columns: [{
-            dataField: "id",
-            dataType: "number",
-            allowEditing: false
-        }, {
-            dataField: "content"
-        }, {
-            dataField: "sent_on",
-            dataType: "datetime",
-            allowEditing: false
-        }, {
-            dataField: "user_from_id",
-            lookup: {
-                dataSource: DevExpress.data.AspNet.createStore({
-                    key: "id",
-                    loadUrl: urlUsers ,
-                    onBeforeSend: function(method, ajaxOptions) {
-                        ajaxOptions.xhrFields = { withCredentials: true };
-                    }
-                }),
-                valueExpr: "id",
-                displayExpr: "username"
-            }
-        }, {
-            dataField: "user_to_id",
-            lookup: {
-                dataSource: DevExpress.data.AspNet.createStore({
-                    key: "id",
-                    loadUrl: urlUsers,
-                    onBeforeSend: function(method, ajaxOptions) {
-                        ajaxOptions.xhrFields = { withCredentials: true };
-                    }
-                }),
-                valueExpr: "id",
-                displayExpr: "username"
+        });
+    }
 
+    function allusers(){
+        $.ajax({
+            url:'/users',
+            type:'GET',
+            contentType: 'application/json',
+            dataType:'json',
+            success: function(response){
+                //alert(JSON.stringify(response));
+                var i = 0;
+                $.each(response, function(){
+                    f = '<div class="alert alert-secondary" role="alert" onclick=loadMessages('+currentUserId+','+response[i].id+') >';
+                    f = f + response[i].username;
+                    f = f + '</div>';
+                    i = i+1;
+                    $('#allusers').append(f);
+                });
+            },
+            error: function(response){
+                alert(JSON.stringify(response));
             }
-        },  ],
-    }).dxDataGrid("instance");
-});
+        });
+    }
+
+    function loadMessages(user_from_id, user_to_id){
+        //alert(user_from_id);
+        //alert(user_to_id);
+        currentClickedId = user_to_id;
+        $.ajax({
+            url:'/messages/'+user_from_id+"/"+user_to_id,
+            type:'GET',
+            contentType: 'application/json',
+            dataType:'json',
+            success: function(response){
+                alert(JSON.stringify(response));
+            },
+            error: function(response){
+                alert(JSON.stringify(response));
+            }
+        });
+    }
+
+    function sendMessage(){
+        var message = $('#postmessage').val();
+        $('#postmessage').val('');
+
+        var data = JSON.stringify({
+                "user_from_id": currentUserId,
+                "user_to_id": currentClickedId,
+                "content": message
+            });
+
+        $.ajax({
+            url:'/gabriel/messages',
+            type:'POST',
+            contentType: 'application/json',
+            data : data,
+            dataType:'json',
+            success: function(response){
+                alert(JSON.stringify(response));
+            },
+            error: function(response){
+                alert(JSON.stringify(response));
+            }
+        });
+
+
+    }
