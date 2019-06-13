@@ -7,13 +7,19 @@
     <script src="/static/js/libs/bootstrap.min.js" ></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script src="crud_chat.js"></script>
+    <script>
+      function logout() {
+        var url = 'http://' + document.domain + ':' + location.port + '/static/login.html';
+                 $(location).attr('href',url);
+      }
+    </script>
 
 </head>
 <body onload="whoami()">
 
 <table width="100%" border="1px solid">
     <tr>
-        <td width="25%">
+        <td width="40%">
             <div  class="alert alert-primary" role="alert">
                 <label id="cu_username"></label>
                 <br/>
@@ -27,8 +33,14 @@
         <td width="75%">
             <div id="messages">Mensajes</div>
                 <input type="text" id="postmessage"/>
-                <input type="button" onclick="sendMessage()">
+                <input type="button" value="enviar" onclick="sendMessage()">
             </div>
+        </td>
+        <hr>
+        <td witdh="10%">
+          <div>
+              <input type="button" value="Log Out" onclick="logout()">
+          </div>
         </td>
     </tr>
 </table>

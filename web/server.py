@@ -61,6 +61,14 @@ def create_user():
     session.add(user)
     session.commit()
     return 'Created User'
+@app.route('/users', methods = ['DELETE'])
+def delete_user():
+    id = request.form['key']
+    session = db.getSession(engine)
+    user = session.query(entities.User).filter(entities.User.id == id).one()
+    session.delete(user)
+    session.commit()
+    return "Deleted User"
 
 @app.route('/authenticate', methods = ["POST"])
 def authenticate():
