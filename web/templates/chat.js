@@ -15,7 +15,7 @@ function whoami(){
                 allusers();
             },
             error: function(response){
-                alert(JSON.stringify(response));
+              //  alert(JSON.stringify(response));
             }
         });
     }
@@ -38,14 +38,13 @@ function whoami(){
                 });
             },
             error: function(response){
-                alert(JSON.stringify(response));
+                //alert(JSON.stringify(response));
             }
         });
     }
 
     function loadMessages(user_from_id, user_to_id){
-        //alert(user_from_id);
-        //alert(user_to_id);
+        $('#messages').html("")
         currentClickedId = user_to_id;
         $.ajax({
             url:'/messages/'+user_from_id+"/"+user_to_id,
@@ -53,7 +52,21 @@ function whoami(){
             contentType: 'application/json',
             dataType:'json',
             success: function(response){
-                alert(JSON.stringify(response));
+                //alert(JSON.stringify(response));
+                $('#messages').html("");
+                var i = 0;
+                $.each(response, function(){
+                    if (response[i]["user_from_id"] == user_to_id) {
+                         f = '<div class="alert alert-secondary" role="alert">';
+                    }
+                    else {
+                        f = '<div class="alert alert-primary" role="alert">';}
+                    f = f + response[i].content;
+                    f = f + '</div>';
+                    i = i+1;
+                    $('#messages').append(f);
+                });
+
             },
             error: function(response){
                 alert(JSON.stringify(response));
@@ -70,15 +83,15 @@ function whoami(){
                 "user_to_id": currentClickedId,
                 "content": message
             });
-
         $.ajax({
-            url:'/gabriel/messages',
+            url:'/messages',
             type:'POST',
             contentType: 'application/json',
             data : data,
             dataType:'json',
             success: function(response){
-                alert(JSON.stringify(response));
+                //alert(JSON.stringify(response));
+                loadMessages(currentUserId,currentClickedId)
             },
             error: function(response){
                 alert(JSON.stringify(response));

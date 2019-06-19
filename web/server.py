@@ -1,4 +1,3 @@
-
 from flask import Flask,render_template, request, session, Response, redirect
 from database import connector
 from model import entities
@@ -107,22 +106,76 @@ def logout():
     session.clear()
     return render_template('index.html')
 
+#Messages
+
+#@app.route('/messages', methods = ['GET'])
+#def get_messages():
+#    session = db.getSession(engine)
+#    dbResponse = session.query(entities.Message)
+#    data = []
+#    for message in dbResponse:
+#        data.append(message)
+#    return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype='application/json')
+
+#@app.route('/messages', methods = ['POST'])
+#def create_message():
+#    c =  json.loads(request.form['values'])
+#    message = entities.User(
+#        content=c['content'],
+#        user_from_id=c['user_from_id'],
+#        user_to_id=c['user_to_id']
+#    )
+#    session = db.getSession(engine)
+#    session.add(message)
+#    session.commit()
+#    return 'Created Message'
+
+##@app.route('/messages', methods = ['PUT'])
+##def update_message():
+#    session = db.getSession(engine)
+#    id = request.form['key']
+#    message = session.query(entities.Message).filter(entities.Message.id == id).first()
+#    c =  json.loads(request.form['values'])
+#    for key in c.keys():
+#        setattr(message, key, c[key])
+#    session.add(message)
+#    session.commit()
+#    return 'Updated Message'
+
+#@app.route('/messages', methods = ['DELETE'])
+#def delete_message():
+#    id = request.form['key']
+#    session = db.getSession(engine)
+#    messages = session.query(entities.Message).filter(entities.Message.id == id)
+#    for message in messages:
+#        session.delete(message)
+#    session.commit()
+#    return "Deleted Message"
+
+#Chat
 
 @app.route('/messages/<user_from_id>/<user_to_id>', methods = ['GET'])
 def get_messages(user_from_id, user_to_id ):
     db_session = db.getSession(engine)
-    messages = db_session.query(entities.Message).filter(
+    messages1= db_session.query(entities.Message).filter(
         entities.Message.user_from_id == user_from_id).filter(
         entities.Message.user_to_id == user_to_id
     )
+    messages2 = db_session.query(entities.Message).filter(
+        entities.Message.user_from_id == user_from_id).filter(
+        entities.Message.user_to_id == user_to_id
+    )
+    messages = messages1.union(messages2)
+
     data = []
     for message in messages:
         data.append(message)
+
     return Response(json.dumps(data, cls=connector.AlchemyEncoder), mimetype='application/json')
 
 
-@app.route('/gabriel/messages', methods = ["POST"])
-def create_message():
+@app.route('/messages', methods = ["POST"])
+def create_messages():
     data = json.loads(request.data)
     user_to_id = data['user_to_id']
     user_from_id = data['user_from_id']
@@ -133,7 +186,6 @@ def create_message():
     user_from_id = user_from_id,
     content = content)
 
-    #2. Save in database
     db_session = db.getSession(engine)
     db_session.add(message)
     db_session.commit()
